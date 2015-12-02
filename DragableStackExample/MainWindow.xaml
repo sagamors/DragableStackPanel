@@ -1,0 +1,17 @@
+﻿<Window x:Class="DragableStackExample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DragableStackExample"
+        xmlns:ds="clr-namespace:DragableStack;assembly=DragableStack"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <ds:DragableStack Name="sp" AllowDrop="True" >
+            <Button Content="button 1"   HorizontalAlignment="Center" Height="50" Width="200" />
+            <Button Content="button 2"   HorizontalAlignment="Center" Height="50" Width="200"/>
+            <Button Content="button 3"   HorizontalAlignment="Center" Height="50" Width="200"/>
+        </ds:DragableStack>
+    </Grid>
+</Window>

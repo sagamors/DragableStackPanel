@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DragableStack", "DragableStack\DragableStack.csproj", "{1740F2F9-0DD2-4A99-841B-64B150EC09E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DragableStackExample", "DragableStackExample\DragableStackExample.csproj", "{28BE437A-E511-49F5-832D-18C1C15DF789}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1740F2F9-0DD2-4A99-841B-64B150EC09E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1740F2F9-0DD2-4A99-841B-64B150EC09E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1740F2F9-0DD2-4A99-841B-64B150EC09E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1740F2F9-0DD2-4A99-841B-64B150EC09E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28BE437A-E511-49F5-832D-18C1C15DF789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28BE437A-E511-49F5-832D-18C1C15DF789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28BE437A-E511-49F5-832D-18C1C15DF789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28BE437A-E511-49F5-832D-18C1C15DF789}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
