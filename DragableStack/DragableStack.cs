@@ -1,19 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Media.Animation;
 
 namespace DragableStack
 {
@@ -46,15 +36,23 @@ namespace DragableStack
     ///     <MyNamespace:DragableStack/>
     ///
     /// </summary>
+
+    // todo add attached property DragableStackIndex
+    // todo fix tremor in animation
+    // todo implement horizontal orientation
     public class DragableStack : StackPanel
     {
+        private readonly TimeSpan ANIMATION_DURATION = new TimeSpan(0, 0, 0, 0, 200);
         private bool _isDown;
         private bool _isDragging;
         private Point _startPoint;
-        private UIElement _realDragSource;
+        private Point _startPointOnDragSource;
+        private FrameworkElement _realDragSource;
         private Popup _popup;
-        private UIElement _dummyDragSource = new UIElement();
-        private UIElement _dummyDragSource2 = new UIElement();
+        private FrameworkElement _tempElement;
+        private DoubleAnimation _animation;
+        private static int positionIndex = -1;
+
         static DragableStack()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(DragableStack), new FrameworkPropertyMetadata(typeof(DragableStack)));
@@ -62,105 +60,107 @@ namespace DragableStack
 
         public DragableStack()
         {
-            //PreviewMouseLeftButtonDown += SpPreviewMouseLeftButtonDown;
             _popup = new Popup();
+            _popup.AllowsTransparency = true;
             _popup.Placement=PlacementMode.Relative;
             _popup.PlacementTarget = this;
             Children.Add(_popup);
-            this.MouseMove += DragableStack_MouseMove;
-            this.Drop += sp_Drop;
+            MouseMove += DragableStack_MouseMove;
+            _animation = new DoubleAnimation();
+            _animation.Duration = ANIMATION_DURATION;
+            _animation.Completed += Animation_Completed;
         }
 
         private void DragableStack_MouseMove(object sender, MouseEventArgs e)
         {
-            Debug.Write("Mouse move" + _isDown);
-
             if (_isDown)
             {
-                //&& ((Math.Abs(e.GetPosition(this).X - _startPoint.X) > SystemParameters.MinimumHorizontalDragDistance) ||
-                //    (Math.Abs(e.GetPosition(this).Y - _startPoint.Y) > SystemParameters.MinimumVerticalDragDistance))
-                if ((_isDragging == false) )
+                if ((_isDragging == false && ((Math.Abs(e.GetPosition(this).X - _startPoint.X) > SystemParameters.MinimumHorizontalDragDistance) ||
+                    (Math.Abs(e.GetPosition(this).Y - _startPoint.Y) > SystemParameters.MinimumVerticalDragDistance))))
                 {
-                    Debug.Write("_isDragging true");
                     _isDragging = true;
                     _popup.IsOpen = true;
-                 //   _realDragSource = e.Source as UIElement;
-                
                     var index = this.Children.IndexOf(_realDragSource);
+                    if (index == -1) return;
                     this.Children.RemoveAt(index);
-
-/*                    Border border = new Border();
-                    border.Background = Brushes.IndianRed;
-                    border.Height = 100;
-                    border.Width = 100;
-                    _popup.Child = new Button() { Content = _realDragSource };*/
-                    //this.Children.Insert(index, border);
-                    DragDrop.DoDragDrop(_dummyDragSource, new DataObject("UIElement", _realDragSource, true), DragDropEffects.Move);
-                    Mouse.SetCursor(Cursors.None);
+                    _popup.Child = _realDragSource;
                 }
             }
 
-            if (_isDragging)
+            if (!_isDragging) return;
+
+            var point = e.GetPosition(this);
+
+            _popup.HorizontalOffset = point.X - _startPointOnDragSource.X;
+            _popup.VerticalOffset = point.Y - _startPointOnDragSource.Y;
+            int newPositionIndex = -1;
+            for (int index = 0; index < Children.Count; index++)
             {
-                var point = e.GetPosition(this);
-                _popup.HorizontalOffset = point.X + 10;
-                _popup.VerticalOffset = point.Y + 10;
+                // todo use simple class
+                FrameworkElement child = (FrameworkElement) Children[index];
+                var pointOnParent = child.TranslatePoint(new Point(), this);
+                double yCenter = child.ActualHeight/2 + pointOnParent.Y;
+                if (point.Y < yCenter)
+                {
+                    newPositionIndex = index;
+                    break;
+                }
+                if (index == Children.Count - 1 && point.Y > yCenter)
+                {
+                    newPositionIndex = index;
+                }
             }
+
+            if (newPositionIndex == -1 || positionIndex == newPositionIndex) return;
+
+            if (positionIndex != -1)
+            {
+                Children.RemoveAt(positionIndex);
+            }
+     
+            Children.Insert(newPositionIndex, _tempElement = new Border()
+            {
+                Width = _realDragSource.Width,
+                Height = 0
+            });
+            _animation.To = _realDragSource.Height;
+            _tempElement.BeginAnimation(HeightProperty, _animation);
+            positionIndex = newPositionIndex;
         }
 
         protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
         {
             if (e.Source != this)
             {
-                _realDragSource = e.Source as UIElement;
+                _realDragSource = e.Source as FrameworkElement;
                 _isDown = true;
                 _startPoint = e.GetPosition(this);
-                Debug.Write("startPoint");
+                _startPointOnDragSource = e.GetPosition(_realDragSource);
                 this.CaptureMouse();
             }
-            base.OnPreviewMouseLeftButtonDown(e);
+            e.Handled = false;
+           // base.OnPreviewMouseLeftButtonDown(e);
         }
 
         protected override void OnPreviewMouseLeftButtonUp(MouseButtonEventArgs e)
         {
-            var pointCurrentPositionPointy = Mouse.GetPosition(this);
-           var result =  VisualTreeHelper.HitTest(this, pointCurrentPositionPointy);
-            if (result.VisualHit!=null)
+            if (positionIndex != -1 && _isDragging)
             {
-                
+                Children.RemoveAt(positionIndex);
+                var temoObj = _popup.Child;
+                _popup.Child = null;
+                Children.Insert(positionIndex, temoObj);
+                positionIndex = -1;
             }
             _isDown = false;
             _isDragging = false;
-           this.ReleaseMouseCapture();
+            this.ReleaseMouseCapture();
             base.OnPreviewMouseLeftButtonUp(e);
-
         }
 
-        private void sp_Drop(object sender, DragEventArgs e)
+        private void Animation_Completed(object sender, EventArgs e)
         {
-            if (e.Data.GetDataPresent("UIElement"))
-            {
-                UIElement droptarget = e.Source as UIElement;
-                int droptargetIndex = -1, i = 0;
-                foreach (UIElement element in this.Children)
-                {
-                    if (element.Equals(droptarget))
-                    {
-                        droptargetIndex = i;
-                        break;
-                    }
-                    i++;
-                }
-                if (droptargetIndex != -1)
-                {
-                    this.Children.Remove(_realDragSource);
-                    this.Children.Insert(droptargetIndex, _realDragSource);
-                }
-
-                _isDown = false;
-                _isDragging = false;
-                _realDragSource.ReleaseMouseCapture();
-            }
+          
         }
     }
 }

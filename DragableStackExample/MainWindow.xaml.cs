@@ -24,5 +24,11 @@ namespace DragableStackExample
         {
             InitializeComponent();
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            // todo : fix click and other event
+            MessageBox.Show("Click", "Message click");
+        }
     }
 }
